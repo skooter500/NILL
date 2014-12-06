@@ -8,7 +8,43 @@ class Landscape extends GameObject
   float upper;
   float landProbability;
   float landSiteWidth = 50;
-  float noisyness = 0.08f;
+  float noisyness = 0.08f; 
+  
+  int playerVertex;
+  
+  boolean isLandSite(int vIndex)
+  {
+    return (vertices.get(vIndex).x - vertices.get(vIndex - 1).x == landSiteWidth);
+  }
+  
+  int findPlayerVertex(KittyLander lander)
+  {
+    // Binary search
+    int lo = 0;
+    int hi = vertices.size() - 1;
+    PVector pos = lander.position.get();
+   
+    while (lo <= hi)
+    {
+      int mid = lo + (hi - lo) / 2;      
+      if (pos.x < vertices.get(mid).x) 
+      {
+        if (pos.x > vertices.get(mid - 1).x)
+        {
+          return mid;
+        }
+        else
+        {
+          hi = mid - 1;
+        }        
+      }
+      else
+      {
+        lo = mid + 1;
+      }
+    }    
+    return -1;
+  }
   
   Landscape(float density, float landProbability, float lower, float upper)
   {
@@ -34,6 +70,11 @@ class Landscape extends GameObject
       {
         p.x = lastX + landSiteWidth;
         p.y = lastY;      
+        KittyBox box = new KittyBox();
+        box.position.x = p.x - 10;
+        box.position.y = p.y;
+        addGameObject(box);        
+        boxes.add(box);
       }
       else
       {
@@ -67,7 +108,19 @@ class Landscape extends GameObject
     for (int i = 1 ; i < vertices.size() ; i ++)
     {
         PVector from = vertices.get(i - 1);
-        PVector to = vertices.get(i);        
+        PVector to = vertices.get(i);       
+        if (i == playerVertex)
+        {
+          stroke(255, 0, 0);
+        } 
+        else
+        {
+          stroke(255);
+        }
+        if (isLandSite(i))
+        {
+          stroke(51, 255, 51);
+        }
         line(from.x, from.y, to.x, to.y);
     }
     popMatrix();

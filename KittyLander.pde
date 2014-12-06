@@ -24,12 +24,26 @@ class KittyLander extends GameObject
   AudioPlayer hyperDriveSound;
   float halfWidth;
   float halfHeight;
+  float fuel = 1000;
+  float kitties = 10;
   
+  boolean landed = false;
+  
+  PVector gravity = new PVector(0, 20, 0);            
+
   ArrayList<PVector> vertices = new ArrayList<PVector>();
   
   ControllDevice device;
   
   boolean jet;
+  
+  
+  
+  void explode()
+  {
+    exploding = true;
+    
+  }
   
   KittyLander()
   {
@@ -43,7 +57,7 @@ class KittyLander extends GameObject
     position.x = width / 2;
     position.y = height / 2;
 
-    angularVelocity = 5.0f;
+    angularVelocity = 1.0f;
     mass = 0.5f;
     colour = color(0, 255, 255);
     int numSides = 8;
@@ -112,68 +126,41 @@ class KittyLander extends GameObject
   }
   
   boolean lastPressed = false;
-  
+  boolean exploded = false;
   
   void update()
   {                 
       elapsed += timeDelta;
+
+      float newtons = 100.0f;      
       
-      /*
       if (device.getSlider(4).getValue() > 0.5f)
       {     
           force.add(PVector.mult(look, newtons));
           jet = true;
+          landed = false;
+          fuel --;
       }      
       else
       {
         jet = false;
       }     
-           
-      
-      if (device.getSlider(1).getValue() < - 0.5f)
+                 
+      if (device.getSlider(1).getValue() < - 0.5f && ! landed)  
       {
         theta -= timeDelta * angularVelocity;
       }    
       
-      if (device.getSlider(1).getValue() > 0.5f)
+      if (device.getSlider(1).getValue() > 0.5f && ! landed)
       {
         theta += timeDelta * angularVelocity;
       }
       
-      if (device.getButton(1).pressed() && hyper > 0 && ! lastPressed)
-      {
-        playSound(hyperDriveSound);
-        position.x = random(0, width);
-        position.y = random(0, height);        
-        hyper --;
-        lastPressed = true;
-      }
-      if (! device.getButton(1).pressed())
-      {
-        lastPressed = false;
-      }      
-      
       look.x = sin(theta);
       look.y = -cos(theta);
-      
-      if (device.getButton(0).pressed() && elapsed > toPass && ammo > 0)
-      {
-        playSound(shootSound);
-        Lazer lazer = new Lazer();
-        lazer.position = position.get();
-        PVector offset = look.get();
-        offset.mult(w);
-        lazer.position.add(offset);
-        lazer.theta = theta;
-        lazer.colour = colour;
-        PVector lazerVelocity = PVector.mult(look, 300);
-        lazer.velocity = lazerVelocity;
-        addGameObject(lazer);
-        elapsed = 0.0f;
-        ammo --;
-      }
-      
+
       PVector acceleration = PVector.div(force, mass);
+      acceleration.add(gravity);
       velocity.add(PVector.mult(acceleration, timeDelta));   
    
      if (velocity.mag() > maxSpeed)
@@ -182,13 +169,18 @@ class KittyLander extends GameObject
         velocity.mult(maxSpeed);
       }   
       
+      if (landed && velocity.y > 0)
+      {
+        velocity.y = 0;
+      }
+      
       position.add(PVector.mult(velocity, timeDelta));
       // Apply damping
       velocity.mult(0.99f);
       
       // Reset the force
       force.setMag(0);
-      */            
+
       if (shield)
       {
         shieldEllapsedFrames ++;
@@ -217,7 +209,7 @@ class KittyLander extends GameObject
   {
     stroke(255);
     pushMatrix();
-    translate(position.x, position.y);
+    translate(width / 2, position.y);
     rotate(theta);
     scale(scaleF);
     stroke(colour);
@@ -237,7 +229,6 @@ class KittyLander extends GameObject
     
     if (jet)
     {
-      stroke(255, 20, 147);
       line(-halfWidth * 0.3f, halfHeight, 0, h);
       line(halfWidth * 0.3f, halfHeight, 0, h);
     }
