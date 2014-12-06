@@ -14,6 +14,7 @@ class KittyBox extends GameObject
   void display()
   {
     pushMatrix();
+    noFill();
     float x = position.x + (width / 2) - (lander.position.x);
     translate(x, position.y);
     stroke(255, 255, 102);    

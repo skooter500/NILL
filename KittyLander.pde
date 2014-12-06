@@ -48,12 +48,15 @@ class KittyLander extends GameObject
   void reset()
   {
     kitties = 0;
+    theta = 0;
     force = new PVector(0,0);
     velocity = new PVector(0,0);
     kitties = 0;
     fuel = 1000;
     position.x = width / 2;
-    position.y = height / 2;    
+    position.y = height / 2;
+    exploding = false;
+    landed = false;    
   }
   
   KittyLander()

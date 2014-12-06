@@ -14,7 +14,10 @@ class Explosion extends GameObject
   Explosion(ArrayList<PVector> vertices, PVector pos)
   {
     this.position = pos;
-    this.vertices = vertices;
+    for(PVector vertex:vertices)
+    {
+      this.vertices.add(vertex.get());
+    }
     for (int i = 0 ;  i < vertices.size() ; i +=2)
     {
         PVector dir = new PVector(random(-1, 1), random(-1, 1));

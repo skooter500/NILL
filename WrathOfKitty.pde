@@ -16,6 +16,7 @@ ArrayList<KittyBox> boxes = new ArrayList<KittyBox>();
 boolean[] keys = new boolean[526];
 KittyLander lander;
 Landscape landscape;
+Explosion explosion;
 ControllIO controll;
 Minim minim;//audio context
 
@@ -26,9 +27,16 @@ MovingLetters[] letters = new MovingLetters[3];
 float safeAngle = 0.1f;
 float safeSpeed = 20.0f;
 
+AudioPlayer explosionSound;
+AudioPlayer pickupSound;
+
 void reset()
 {
   lander.reset();
+  if (explosion != null)
+  {
+    explosion.alive = false;
+  }
 }
 
 void splash()
@@ -72,8 +80,11 @@ void setup()
 {
   size(800, 600);
   smooth();
-  
+  minim = new Minim(this);
   noCursor();
+  
+  explosionSound = minim.loadFile("explosion.wav");
+  pickupSound = minim.loadFile("pickup.wav");
   
   for (font_size size:font_size.values())  
   {
@@ -116,6 +127,7 @@ void game(boolean update)
     }
   }
   checkCollisions();
+  stroke(0, 255, 255);
   printText("Speed: " + (int) lander.velocity.mag(), font_size.small, 10, 10);
   printText("Fuel: " + (int) lander.fuel, font_size.small, 10, 35);
   printText("Kitties: " + (int) lander.kitties, font_size.small, 10, 60);
@@ -140,6 +152,14 @@ KittyBox findKittyBox()
 
 void checkCollisions()
 {
+  if (explosion != null && explosion.alive)
+  {
+    explosion = null;
+    gameState = 2;
+  }
+  
+  
+  
   /*
   if (!lander.exploding)
   {
@@ -157,16 +177,18 @@ void checkCollisions()
   int l = landscape.findPlayerVertex(lander);
   if (landscape.isLandSite(l))
   {
-    printText("Over land site", font_size.small, 10, 85);
+    stroke(255, 153, 255);
+    printText("Over land site!", font_size.small, 10, 85);
     float py = lander.position.y + lander.h;
     if (py  >= landscape.vertices.get(l).y)
     {
       lander.velocity.x = lander.velocity.y = 0;
       if (abs(lander.theta) > safeAngle || lander.velocity.mag() > safeSpeed)
       {
-        Explosion explosion = new Explosion(lander.vertices, new PVector(width / 2, lander.position.y));
+        explosion = new Explosion(lander.vertices, new PVector(width / 2, lander.position.y));
         explosion.theta = lander.theta;
         addGameObject(explosion);
+        playSound(explosionSound);
         lander.exploding = true;
         //gameState = 3;
       } 
@@ -180,10 +202,26 @@ void checkCollisions()
         if (box != null)
         {
           lander.kitties += box.kitties;
+          
+          
           children.remove(box);
+          
         }
       }
     }    
+  }
+  else
+  {
+    float py = lander.position.y + lander.h + 10;    
+    if (py  >= landscape.vertices.get(l).y)
+    {
+      explosion = new Explosion(lander.vertices, new PVector(width / 2, lander.position.y));
+        explosion.theta = lander.theta;
+        addGameObject(explosion);
+        lander.exploding = true;
+                playSound(explosionSound);
+
+    }
   }
 }
 
@@ -200,7 +238,7 @@ void draw()
       game(true);
       break;
     case 2:
-      game(false);
+      game(true);
       gameOver();
       break;  
   }
@@ -232,7 +270,7 @@ boolean checkKey(int k)
 }
 
 boolean sketchFullScreen() {
-  return false;
+  return true;
 }
 
 ControllDevice getController()
