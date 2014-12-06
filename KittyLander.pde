@@ -25,8 +25,8 @@ class KittyLander extends GameObject
   float halfWidth;
   float halfHeight;
   float fuel = 1000;
-  float kitties = 10;
-  
+  float kitties = 0;
+
   boolean landed = false;
   
   PVector gravity = new PVector(0, 20, 0);            
@@ -45,6 +45,17 @@ class KittyLander extends GameObject
     
   }
   
+  void reset()
+  {
+    kitties = 0;
+    force = new PVector(0,0);
+    velocity = new PVector(0,0);
+    kitties = 0;
+    fuel = 1000;
+    position.x = width / 2;
+    position.y = height / 2;    
+  }
+  
   KittyLander()
   {
     w = 20;
@@ -52,8 +63,6 @@ class KittyLander extends GameObject
     halfWidth = w / 2;
     halfHeight = h / 2;
     
-    shieldToPassFrames = 300;
-    shieldEllapsedFrames = 0;
     position.x = width / 2;
     position.y = height / 2;
 
@@ -126,10 +135,14 @@ class KittyLander extends GameObject
   }
   
   boolean lastPressed = false;
-  boolean exploded = false;
+  boolean exploding  = false;
   
   void update()
   {                 
+      if (exploding)
+      {
+        return;
+      }
       elapsed += timeDelta;
 
       float newtons = 100.0f;      
@@ -207,6 +220,10 @@ class KittyLander extends GameObject
   
   void display()
   {
+    if (exploding)
+    {
+      return;
+    }
     stroke(255);
     pushMatrix();
     translate(width / 2, position.y);

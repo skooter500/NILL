@@ -19,12 +19,54 @@ Landscape landscape;
 ControllIO controll;
 Minim minim;//audio context
 
-int gameState = 1;
+int gameState = 0;
 int CENTRED = -1;
 MovingLetters[] letters = new MovingLetters[3];
 
 float safeAngle = 0.1f;
-float safeSpeed = 10.0f;
+float safeSpeed = 20.0f;
+
+void reset()
+{
+  lander.reset();
+}
+
+void splash()
+{
+  background(0);
+  stroke(255);
+  
+  printText("Kitty Rescue", font_size.large, CENTRED, 100);  
+  printText("Programmed by Bryan Duggan", font_size.large, CENTRED, 300);
+  if (frameCount / 60 % 2 == 0)
+  {
+    printText("Press SPACE to play", font_size.large, CENTRED, height - 100);  
+  }
+  if (checkKey(' '))
+  {
+    reset();
+    gameState = 1;
+  }
+}
+
+void gameOver()
+{
+  fill(255);
+  stroke(255);  
+  printText("Kitty Rescue", font_size.large, CENTRED, 100);  
+  if (frameCount / 60 % 2 == 0)
+  {
+  printText("Game Over", font_size.large, CENTRED, 200);
+  }
+  stroke(255);  
+  printText("Press SPACE to play", font_size.large, CENTRED, height - 100);  
+  if (checkKey(' '))
+  {
+    gameState = 0;
+  }
+}
+
+
 
 void setup()
 {
@@ -67,9 +109,7 @@ void game(boolean update)
       landscape.position.x = (width / 2) - (lander.position.x);
     }
     entity.display();
-    landscape.playerVertex = landscape.findPlayerVertex(lander);
-    println(landscape.playerVertex);
-    
+    landscape.playerVertex = landscape.findPlayerVertex(lander);    
     if (! entity.alive) 
     {
       children.remove(i);
@@ -97,9 +137,23 @@ KittyBox findKittyBox()
     return null;
 }
 
+
 void checkCollisions()
 {
+  /*
+  if (!lander.exploding)
+  {
+      Explosion explosion = new Explosion(lander.vertices, new PVector(width / 2, lander.position.y));
+      lander.exploding = true;
+      addGameObject(explosion);
+      
+  }
+  */
   // Check player landed
+  if (lander.exploding)
+  {
+    return;
+  }
   int l = landscape.findPlayerVertex(lander);
   if (landscape.isLandSite(l))
   {
@@ -107,10 +161,14 @@ void checkCollisions()
     float py = lander.position.y + lander.h;
     if (py  >= landscape.vertices.get(l).y)
     {
+      lander.velocity.x = lander.velocity.y = 0;
       if (abs(lander.theta) > safeAngle || lander.velocity.mag() > safeSpeed)
       {
-        lander.explode = true;
-        gameState = 3;
+        Explosion explosion = new Explosion(lander.vertices, new PVector(width / 2, lander.position.y));
+        explosion.theta = lander.theta;
+        addGameObject(explosion);
+        lander.exploding = true;
+        //gameState = 3;
       } 
       else
       {
@@ -136,14 +194,14 @@ void draw()
   switch (gameState)
   {
     case 0:
-      //splash();
+      splash();
       break;
     case 1:
       game(true);
       break;
     case 2:
       game(false);
-      //gameOver();
+      gameOver();
       break;  
   }
 }
