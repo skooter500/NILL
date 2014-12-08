@@ -6,25 +6,16 @@ class KittyLander extends GameObject
   float toPass = 1.0f / fireRate;
   float elapsed = toPass;
   
-  int lives = 10;
-  int hyper  = 5;
-  int ammo = 100;
-  
   char forward;
   char left;
   char right;
   char fire;
-  char hyperDrive;
   color colour;
-  boolean shield = false;
-  boolean drawShield = true;
-  int shieldEllapsedFrames;
-  int shieldToPassFrames;
   AudioPlayer shootSound;
   AudioPlayer hyperDriveSound;
   float halfWidth;
   float halfHeight;
-  float fuel = 1000;
+  float fuel;
   float kitties = 0;
 
   boolean landed = false;
@@ -36,9 +27,7 @@ class KittyLander extends GameObject
   ControllDevice device;
   
   boolean jet;
-  
-  
-  
+     
   void explode()
   {
     exploding = true;
@@ -52,7 +41,7 @@ class KittyLander extends GameObject
     force = new PVector(0,0);
     velocity = new PVector(0,0);
     kitties = 0;
-    fuel = 1000;
+    fuel = 500;
     position.x = width / 2;
     position.y = height / 2;
     exploding = false;
@@ -61,8 +50,8 @@ class KittyLander extends GameObject
   
   KittyLander()
   {
-    w = 20;
-    h = 20;
+    w = 30;
+    h = 30;
     halfWidth = w / 2;
     halfHeight = h / 2;
     
@@ -75,56 +64,46 @@ class KittyLander extends GameObject
     int numSides = 8;
     float thetaInc = TWO_PI / (float) numSides;
     
-    PVector last = new PVector(0, - halfHeight);
-    
+    float topSection = h * 0.5f;
+    float radius = topSection / 2;
+    PVector last = new PVector(0, - radius * 2);
+
     for (int i = 1 ; i <= numSides ; i ++)
     {
       float theta = i * thetaInc;
       PVector p = new PVector();
-      p.x = sin(theta) * halfWidth;
-      p.y = -cos(theta) * halfHeight;
+      p.x = sin(theta) * radius;
+      p.y = -radius -cos(theta) * radius;
       vertices.add(last);
       vertices.add(p);
       last = p;
     }
     
-    // Add legs
+    // Add left leg
     vertices.add(vertices.get(5).get());
-    vertices.add(new PVector(halfWidth, halfHeight * 1.5f));
+    vertices.add(new PVector(w * 0.3f, h * 0.2f));
     
-    vertices.add(new PVector(halfWidth, halfHeight * 1.5f));
-    vertices.add(new PVector(halfWidth, halfHeight * 2f));
+    last = vertices.get(vertices.size() - 1).get();   
+    vertices.add(last);
+    vertices.add(new PVector(w * 0.3f, h * 0.5f));
     
+    last = vertices.get(vertices.size() - 1).get();
+    vertices.add(new PVector(last.x - w * 0.1f, last.y));
+    vertices.add(new PVector(last.x + w * 0.1f, last.y));
     
-    vertices.add(new PVector(halfWidth * 0.8f, halfHeight * 2f));    
-    vertices.add(new PVector(halfWidth * 1.2f, halfHeight * 2f));
-
+    // Add right leg
     vertices.add(vertices.get(10).get());
-    vertices.add(new PVector(-halfWidth, halfHeight * 1.5f));
-    
-    vertices.add(new PVector(-halfWidth, halfHeight * 1.5f));
-    vertices.add(new PVector(-halfWidth, halfHeight * 2f));
-    
-    
-    vertices.add(new PVector(-halfWidth * 0.8f, halfHeight * 2f));
-    vertices.add(new PVector(-halfWidth * 1.2f, halfHeight * 2f));
-    
-    // Add whiskers
-    /*
-    vertices.add(vertices.get(3).get());
-    vertices.add(new PVector(w, 0));
-    vertices.add(vertices.get(3).get());
-    vertices.add(new PVector(w, -halfHeight * 0.5f));
-    vertices.add(vertices.get(3).get());
-    vertices.add(new PVector(w, halfHeight * 0.5f));
+    vertices.add(new PVector(-w * 0.3f, h * 0.2f));
 
-    vertices.add(vertices.get(11).get());
-    vertices.add(new PVector(-w, 0));
-    vertices.add(vertices.get(11).get());
-    vertices.add(new PVector(-w, -halfHeight * 0.5f));
-    vertices.add(vertices.get(11).get());
-    vertices.add(new PVector(-w, halfHeight * 0.5f));
-    */
+    last = vertices.get(vertices.size() - 1).get();   
+    vertices.add(last);
+    vertices.add(new PVector(-w * 0.3f, h * 0.5f));
+    
+    last = vertices.get(vertices.size() - 1).get();   
+    vertices.add(new PVector(last.x - w * 0.1f, last.y));
+    vertices.add(new PVector(last.x + w * 0.1f, last.y));
+    
+    
   }
   
   float angularVelocity;
@@ -150,24 +129,28 @@ class KittyLander extends GameObject
 
       float newtons = 100.0f;      
       
-      if (device.getSlider(4).getValue() > 0.5f)
-      {     
-          force.add(PVector.mult(look, newtons));
-          jet = true;
-          landed = false;
-          fuel --;
+      if ((device != null && device.getSlider(4).getValue() > 0.5f) || (checkKey(forward)))
+      {   
+          if (fuel > 0)
+          {  
+            //playSound(thrustSound, true);
+            force.add(PVector.mult(look, newtons));
+            jet = true;
+            landed = false;
+            fuel --;
+          }
       }      
       else
       {
         jet = false;
       }     
                  
-      if (device.getSlider(1).getValue() < - 0.5f && ! landed)  
+      if (((device != null && device.getSlider(1).getValue() < - 0.5f) || checkKey(left)) && ! landed) 
       {
         theta -= timeDelta * angularVelocity;
       }    
       
-      if (device.getSlider(1).getValue() > 0.5f && ! landed)
+      if (((device != null && device.getSlider(1).getValue() > 0.5f)  || checkKey(right)) && ! landed)
       {
         theta += timeDelta * angularVelocity;
       }
@@ -192,34 +175,13 @@ class KittyLander extends GameObject
       
       position.add(PVector.mult(velocity, timeDelta));
       // Apply damping
-      velocity.mult(0.99f);
+      velocity.mult(0.995f);
       
       // Reset the force
       force.setMag(0);
-
-      if (shield)
-      {
-        shieldEllapsedFrames ++;
-        if (shieldEllapsedFrames % 10 == 0)
-        {
-          drawShield = ! drawShield;
-        }
-        if (shieldEllapsedFrames >= shieldToPassFrames)
-        {
-          shield = ! shield;
-        }
-        
-      }      
       super.update();             
   }
   
-  void resetShield(float duration)
-  {
-    shield = true;
-    drawShield = true;
-    shieldEllapsedFrames = 0;
-    this.shieldToPassFrames = (int) duration * 60;
-  }
   
   void display()
   {
@@ -233,13 +195,8 @@ class KittyLander extends GameObject
     rotate(theta);
     scale(scaleF);
     stroke(colour);
-    noFill();
-        
-    if (shield && drawShield)
-    {
-      ellipse(0,0, w * 2, h * 2);
-    }
-    
+    noFill();    
+            
     for (int i = 1 ; i < vertices.size() ; i += 2)
     {
         PVector from = vertices.get(i - 1);
@@ -249,8 +206,9 @@ class KittyLander extends GameObject
     
     if (jet)
     {
-      line(-halfWidth * 0.3f, halfHeight, 0, h);
-      line(halfWidth * 0.3f, halfHeight, 0, h);
+      stroke(0, random(100, 255), random(100, 255));
+      line(-halfWidth * 0.3f, 0, 0, halfHeight);
+      line(halfWidth * 0.3f, 0, 0, halfHeight);
     }
     popMatrix();
     

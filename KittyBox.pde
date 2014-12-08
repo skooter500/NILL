@@ -1,6 +1,7 @@
 class KittyBox extends GameObject
 {
   int kitties;
+  int index;
   float halfWidth, halfHeight;
   KittyBox()
   {

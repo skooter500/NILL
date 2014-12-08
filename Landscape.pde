@@ -61,23 +61,28 @@ class Landscape extends GameObject
     float lastX = lower;
     float lastY = 0;    
     
+    boolean lastSite = false; // Dont make two sites beside each other
+    
     for (int i = 0 ; i < numPoints ; i ++)
     {      
       PVector p = new PVector();
       // Should we place a land site
       float r = random(0, 1);
-      if (r <= landProbability)
+      if (r <= landProbability && ! lastSite)
       {
         p.x = lastX + landSiteWidth;
         p.y = lastY;      
         KittyBox box = new KittyBox();
-        box.position.x = p.x - 10;
+        box.position.x = p.x - landSiteWidth / 2;
         box.position.y = p.y;
+        box.index = i;
         addGameObject(box);        
         boxes.add(box);
+        lastSite = true;
       }
       else
       {
+        lastSite = false;
         p.x = lastX + xGap;
         p.y = height - noise(i * noisyness) * maxHeight;
       }

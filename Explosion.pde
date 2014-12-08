@@ -5,8 +5,8 @@ class Explosion extends GameObject
   ArrayList<Float> rotations = new ArrayList<Float>();
   ArrayList<Float> angularVelocities = new ArrayList<Float>();
   
-  float speed = 0.1f;
-  
+  float speed = 1.5f;
+
   float timeDelta = 1.0 / 60.0f;
   float ellapsed = 0;
   float liveFor = 5.0f;
