@@ -225,8 +225,7 @@ void checkCollisions()
     explosion = null;
     gameState = 2;
   }
-    
-  
+     
   // Check player landed
   if (lander.exploding)
   {
@@ -254,6 +253,7 @@ void checkCollisions()
       {
         lander.theta = 0;
         lander.velocity.x = lander.velocity.y = 0;
+        lander.position.y = landscape.vertices.get(l).y - lander.halfHeight;
         lander.landed = true;
         stroke(51, 153, 255);
         printText("Landed", font_size.small, 10, 135);

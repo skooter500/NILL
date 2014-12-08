@@ -1,6 +1,7 @@
 class Landscape extends GameObject
 {
   ArrayList<PVector> vertices = new ArrayList<PVector>();
+  ArrayList<PVector> stars = new ArrayList<PVector>();
   
   float w;
   float density;
