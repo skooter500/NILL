@@ -6,6 +6,7 @@ class Landscape extends GameObject
   float w;
   float density;
   float lower;
+  
   float upper;
   float landProbability;
   float landSiteWidth = 50;
@@ -15,10 +16,18 @@ class Landscape extends GameObject
   
   boolean isLandSite(int vIndex)
   {
-    return (vertices.get(vIndex).x - vertices.get(vIndex - 1).x == landSiteWidth);
+    if (vIndex > 0 && vIndex < vertices.size())
+    {
+      return (vertices.get(vIndex).x - vertices.get(vIndex - 1).x == landSiteWidth);
+    }
+    else
+    {
+      println("vIndex: " + vIndex);
+      return false;
+    }
   }
   
-  int findPlayerVertex(KittyLander lander)
+  int findPlayerVertex(Ship lander)
   {
     // Binary search
     int lo = 0;
@@ -62,14 +71,14 @@ class Landscape extends GameObject
     float lastX = lower;
     float lastY = 0;    
     
-    boolean lastSite = false; // Dont make two sites beside each other
+    int lastSite = 0;
     
     for (int i = 0 ; i < numPoints ; i ++)
     {      
       PVector p = new PVector();
       // Should we place a land site
       float r = random(0, 1);
-      if (r <= landProbability && ! lastSite)
+      if (r <= landProbability && i - lastSite > 5)
       {
         p.x = lastX + landSiteWidth;
         p.y = lastY;      
@@ -79,11 +88,10 @@ class Landscape extends GameObject
         box.index = i;
         addGameObject(box);        
         boxes.add(box);
-        lastSite = true;
+        lastSite = i;
       }
       else
       {
-        lastSite = false;
         p.x = lastX + xGap;
         p.y = height - noise(i * noisyness) * maxHeight;
       }

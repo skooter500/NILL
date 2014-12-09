@@ -4,16 +4,17 @@ class Explosion extends GameObject
   ArrayList<PVector> directions = new ArrayList<PVector>();
   ArrayList<Float> rotations = new ArrayList<Float>();
   ArrayList<Float> angularVelocities = new ArrayList<Float>();
-  
+  color colour;
   float speed = 1.5f;
 
   float timeDelta = 1.0 / 60.0f;
   float ellapsed = 0;
   float liveFor = 5.0f;
   
-  Explosion(ArrayList<PVector> vertices, PVector pos)
+  Explosion(ArrayList<PVector> vertices, PVector pos, color colour)
   {
     this.position = pos;
+    this.colour = colour;
     for(PVector vertex:vertices)
     {
       this.vertices.add(vertex.get());
@@ -48,6 +49,7 @@ class Explosion extends GameObject
    pushMatrix(); 
    translate(position.x, position.y);
    rotate(theta);
+   stroke(colour);
    for (int i = 1 ; i < vertices.size() ; i += 2)
     {        
         PVector from = vertices.get(i - 1);

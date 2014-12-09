@@ -1,24 +1,25 @@
-import procontroll.*;
-import net.java.games.input.*;
-
 // Uses the following Processing libraries:
 // http://www.foobarquarium.de/blog/processing/MovingLetters/
 // http://creativecomputing.cc/p5libs/procontroll/
-
+// https://github.com/voidplus/leap-motion-processing
 
 import ddf.minim.*;
 import procontroll.*;
 import de.ilu.movingletters.*;
+import procontroll.*;
+import net.java.games.input.*;
+import de.voidplus.leapmotion.*;
 
 ArrayList<GameObject> children = new ArrayList<GameObject>();
 ArrayList<KittyBox> boxes = new ArrayList<KittyBox>();
 
 boolean[] keys = new boolean[526];
-KittyLander lander;
+Ship lander;
 Landscape landscape;
 Explosion explosion;
 ControllIO controll;
 Minim minim;//audio context
+LeapMotion leap;
 
 boolean overLandSite;
 
@@ -35,13 +36,21 @@ AudioPlayer blipSound;
 AudioPlayer thrustSound;
 
 boolean flipColour;
+ 
+boolean sketchFullScreen() {
+  return false;
+}
 
 void setup()
 {
-  size(displayWidth, displayHeight);
+  //size(displayWidth, displayHeight);
+  size(800, 600);
   smooth();
-  minim = new Minim(this);
   noCursor();
+  
+  minim = new Minim(this);  
+  controll = ControllIO.getInstance(this);
+  leap = new LeapMotion(this);
   
   explosionSound = minim.loadFile("explosion.wav");
   pickupSound = minim.loadFile("pickup.wav");
@@ -53,10 +62,8 @@ void setup()
     letters[size.index] = new MovingLetters(this, size.size, 1, 0);
   }
  
-  minim = new Minim(this);  
-  controll = ControllIO.getInstance(this);
 
-  lander = new KittyLander(getController());
+  lander = new Ship(getController());
   lander.forward = UP;
   lander.left = LEFT;
   lander.right = RIGHT;
@@ -201,20 +208,7 @@ KittyBox findKittyBox()
         }
       }
     }    
-    return null;
-    
-    // Binary search
-    /*
-    PVector pos = lander.position.get();
-    for(KittyBox box:boxes)
-    {
-      if (PVector.dist(box.position, pos) < 50)
-      {
-        return box;
-      }
-    }
-    return null;
-    */
+    return null;    
 }
 
 
@@ -234,6 +228,7 @@ void checkCollisions()
   
   int l = landscape.findPlayerVertex(lander);
   float py = lander.position.y + lander.halfHeight;
+  
   if (landscape.isLandSite(l))
   {
     stroke(255, 51, 255);
@@ -243,7 +238,7 @@ void checkCollisions()
     {      
       if (abs(lander.theta) > safeAngle || lander.velocity.mag() > safeSpeed)
       {
-        explosion = new Explosion(lander.vertices, new PVector(width / 2, lander.position.y));
+        explosion = new Explosion(lander.vertices, new PVector(width / 2, lander.position.y), lander.colour);
         explosion.theta = lander.theta;
         addGameObject(explosion);
         playSound(explosionSound);
@@ -270,19 +265,22 @@ void checkCollisions()
   }
   else
   {
-    overLandSite = false;
-    
+    overLandSite = false;    
+  }
+  
+  if (! lander.landed)
+  {
     for(int i = -2 ; i < 3 ; i ++)
     {
       if (PVector.dist(landscape.vertices.get(l + i), lander.position) < lander.halfWidth)
       {
-        explosion = new Explosion(lander.vertices, new PVector(width / 2, lander.position.y));
+        explosion = new Explosion(lander.vertices, new PVector(width / 2, lander.position.y), lander.colour);
         explosion.theta = lander.theta;
         addGameObject(explosion);
         lander.exploding = true;
         playSound(explosionSound);
       }
-    }        
+    }      
   }
 }
 
@@ -358,9 +356,6 @@ boolean checkKey(int k)
   return false;
 }
 
-boolean sketchFullScreen() {
-  return true;
-}
 
 ControllDevice getController()
 {
