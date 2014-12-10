@@ -3,6 +3,7 @@ class KittyBox extends GameObject
   int kitties;
   int index;
   float halfWidth, halfHeight;
+  
   KittyBox()
   {
     kitties = (int)random(1, 10);

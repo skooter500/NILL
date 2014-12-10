@@ -1,5 +1,6 @@
 class GameObject
 {
+  ArrayList<PVector> vertices = new ArrayList<PVector>();
   PVector position;
   PVector look;
   PVector right;
@@ -12,7 +13,6 @@ class GameObject
   float theta;
   float scaleF = 1.0f;
   float speed = 100.0f;
-  float timeDelta = 1.0f / 60.0f;
   boolean alive;
   boolean drawVectors;
   float mass;

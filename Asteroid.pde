@@ -44,11 +44,10 @@ class Asteroid extends GameObject implements Powerup
   
   void applyTo(Ship ship)
   {
-    ship.fuel += (int) random(100, 500);
-    if (ship.fuel > ship.maxFuel)
-    {
-      ship.fuel = ship.maxFuel;
-    }
+    playerExplosion = new Explosion(ship.vertices, new PVector(width / 2, ship.position.y), ship.colour);
+    playerExplosion.theta = ship.theta;
+    addGameObject(playerExplosion);        
+    lander.exploding = true;
   }
   
   void update()

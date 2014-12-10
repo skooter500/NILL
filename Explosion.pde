@@ -1,9 +1,7 @@
 class Explosion extends GameObject
 {
-  ArrayList<PVector> vertices = new ArrayList<PVector>();
   ArrayList<PVector> directions = new ArrayList<PVector>();
-  ArrayList<Float> rotations = new ArrayList<Float>();
-  ArrayList<Float> angularVelocities = new ArrayList<Float>();
+  
   color colour;
   float speed = 1.5f;
 

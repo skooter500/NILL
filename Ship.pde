@@ -16,9 +16,7 @@ class Ship extends GameObject
   float kitties = 0;
 
   boolean landed = false;
-  
-  ArrayList<PVector> vertices = new ArrayList<PVector>();
-  
+    
   ControllDevice device;
   
   boolean jet;
@@ -102,6 +100,17 @@ class Ship extends GameObject
   boolean lastPressed = false;
   boolean exploding  = false;
   
+  boolean fade = true;
+   
+  void fadeSound(AudioPlayer p)
+  {
+    if (fade)
+    {      
+      fade = false;
+      p.shiftGain(14, -80, 500);
+    }
+  }
+  
   void update()
   {                 
       if (exploding)
@@ -137,6 +146,7 @@ class Ship extends GameObject
           else
           {
             jet = false;
+
           }
       }      
       else
