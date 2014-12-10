@@ -132,12 +132,11 @@ class Ship extends GameObject
       {
         if (!lander.landed)
         {
-          println(hand.getRawPosition().y);
           lander.theta = radians(hand.getPitch());
         }
       }   
           
-      if ((device != null && device.getSlider(4).getValue() > 0.5f) || (checkKey(forward)) || (hand != null && hand.getPosition().y > 550))
+      if ((device != null && device.getSlider(4).getValue() > 0.5f) || (checkKey(forward)) || (hand != null && hand.getRawPosition().y < 200))
       {   
           if (fuel > 0 && position.y > height * .2)
           {  
@@ -184,7 +183,7 @@ class Ship extends GameObject
         force.add(PVector.mult(new PVector(0, -1), newtons));
         if (position.y < - 10)
         {
-          winState = 1;
+          winState = 2;
           gameState = 2;
         }        
       }

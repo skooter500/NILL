@@ -55,11 +55,7 @@ class GameObject
     force.setMag(0);      
   }
   
-  PVector randomOffscreenPoint(float border)
-  {    
-    float left = lander.position.x - width / 2;
-    return new PVector(random(left, left + width/ 2), -border);    
-  }
+  
   
   void wrap()
   {

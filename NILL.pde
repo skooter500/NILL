@@ -42,6 +42,7 @@ float damping = 0.995f;
 boolean flipColour;
 float worldWidth = 5000;
 float landscapeToScreenX;
+float totalKitties = 0;
 
 boolean devMode = false;
 
@@ -101,10 +102,17 @@ void spawnPowerup()
   }
 }
 
+PVector randomOffscreenPoint(float border)
+{    
+  float left = lander.position.x - width / 2;
+  return new PVector(random(left, left + width), -border);    
+}
+
 void reset()
 {
   children.clear();
   boxes.clear();
+  totalKitties = 0;
   landscape = new Landscape(5, .03f, worldWidth);  
   children.add(landscape);  
   lander = new Ship(getController());
@@ -113,7 +121,7 @@ void reset()
   lander.right = RIGHT;  
   lander.reset();  
   children.add(lander);
-  //playSound(soundtrack, true);
+  playSound(soundtrack, true);
 
   for (int i = 0 ; i < worldWidth / 5 ; i ++)
   {
@@ -129,6 +137,7 @@ void splash()
   printText("NILL", font_size.large, CENTRED, 100);  
   printText("Non-Infinite Luner Lander", font_size.large, CENTRED, 200);
   printText("Programmed by Bryan Duggan", font_size.large, CENTRED, 300);
+  printText("Music by Eric Skiff", font_size.large, CENTRED, 400);
   if (frameCount / 60 % 2 == 0)
   {
     printText("Press SPACE to play", font_size.large, CENTRED, height - 100);  
@@ -149,11 +158,15 @@ void gameOver()
   {
     if (winState == 0)
     {
-      printText("You died - Game Over", font_size.large, CENTRED, 200);
+      printText("You crashed - Game Over", font_size.large, CENTRED, 200);
+    }    
+    else if (winState == 1)
+    {
+      printText("You ran out of fuel - Game Over", font_size.large, CENTRED, 200);      
     }
     else
     {
-      printText("You won - Game Over", font_size.large, CENTRED, 200);
+      printText("You won! - Game Over", font_size.large, CENTRED, 200);
     }
   }
   printText("Press SPACE to play", font_size.large, CENTRED, 300);
@@ -255,6 +268,12 @@ void checkCollisions()
     playerExplosion = null;
     gameState = 2;
   }
+  
+  if (lander.landed && lander.fuel == 0)
+  {
+    gameState = 2;
+    winState = 1;
+  }
     
   int l = landscape.findVertex(lander.position.x);  
   if (landscape.isLandSite(l))
@@ -351,10 +370,31 @@ void checkCollisions()
   }
 }
 
+boolean muteToggle = true;
+
 void draw()
-{
-  
+{  
   background(0);
+  
+  if (checkKey('M') )
+  {
+    if (muteToggle)
+    {
+      if (soundtrack.isMuted())
+      {
+        soundtrack.unmute();
+      }
+      else
+      {
+        soundtrack.mute();
+      }
+    }
+    muteToggle = false;
+  }
+  else
+  {
+    muteToggle = true;
+  }
   
   if (frameCount % 10 == 0)
   {
@@ -424,7 +464,7 @@ void drawHud()
   stroke(255, 255, 102);    
   printText("Kitties:", font_size.small, 10, 85);
   
-  line(barStart, 85 + barHeight, barStart + map(lander.kitties, 0, 100, 0, linesWidth), 85 + barHeight);  
+  line(barStart, 85 + barHeight, barStart + map(lander.kitties, totalKitties, 0, 0, linesWidth), 85 + barHeight);  
   line(barStart, 85, 90, 85 + barHeight);  
 }
 

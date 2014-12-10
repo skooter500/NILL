@@ -90,6 +90,7 @@ class Landscape extends GameObject
     float maxHeight = height * 0.5f;    
     float lastX = 0;
     float lastY = 0;    
+    float seed = random(0, 10000);
     
     int lastSite = 0;
     
@@ -106,14 +107,15 @@ class Landscape extends GameObject
         box.position.x = p.x - landSiteWidth / 2;
         box.position.y = p.y;
         box.index = i;
-        addGameObject(box);        
+        addGameObject(box);   
+        totalKitties += box.kitties;     
         boxes.add(box);
         lastSite = i;
       }
       else
       {
         p.x = lastX + xGap;
-        p.y = height - noise(i * noisyness) * maxHeight;
+        p.y = height - noise(seed + (i * noisyness)) * maxHeight;
       }
       vertices.add(p);
       lastX = p.x;
