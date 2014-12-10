@@ -12,12 +12,12 @@ class Asteroid extends GameObject implements Powerup
     mass = 10.0f;
     velocity = new PVector(random(-100, 100), random(0, 1));
     
-    int sides = 5;
+    int sides = 8;
     float radius = w / 2.0f;
     float thetaInc = TWO_PI / (float) sides;
     float lastX = 0, lastY = - radius;
     float x, y;
-    for (int i = 1 ; i <= sides ; i ++)
+    for (int i = 1 ; i < sides ; i ++)
     {
       float theta1 = (float) i  * thetaInc;
       if ((int)random(0,3) == 0)
@@ -35,6 +35,8 @@ class Asteroid extends GameObject implements Powerup
       lastX = x;
       lastY = y; 
     } 
+    vertices.add(new PVector(lastX, lastY));  
+    vertices.add(new PVector(0, -radius));  
     
   }  
   
