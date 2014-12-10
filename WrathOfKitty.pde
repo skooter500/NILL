@@ -44,7 +44,7 @@ float landscapeToScreenX;
 boolean devMode = false;
 
 // Spawn powerup every 5 seconds
-float spawnInterval = 10.0f;
+float spawnInterval = 1.0f;
  
 boolean sketchFullScreen() {
   return ! devMode;
@@ -84,7 +84,8 @@ void spawnPowerup()
 {
   if (frameCount % ((int) (spawnInterval * 60.0f)) == 0)
   {
-    GameObject powerup = new FuelPowerup(); 
+    
+    GameObject powerup = new Asteroid(); 
     children.add(powerup);
   }
 }
@@ -185,40 +186,7 @@ void game(boolean update)
   popMatrix();
   
   checkCollisions();
-  
-  
-  stroke(0, 255, 255);
-  if (overLandSite && lander.velocity.mag() > safeSpeed)
-  {
-    if (flipColour)
-    {
-      stroke(255, 0, 0);
-    }
-  }
-  printText("Speed: " + (int) lander.velocity.mag(), font_size.small, 10, 10);
-  stroke(0, 255, 255);
-  if (overLandSite && abs(lander.theta) > safeAngle)
-  {
-    if (flipColour)
-    {
-      stroke(255, 0, 0);
-    }
-  }
-  printText("Angle: " + (int) degrees(lander.theta), font_size.small, 10, 35);
-  
-  stroke(0, 255, 0);  
-  if (lander.fuel <= 0)
-  {
-    playBlip = true;
-    if (flipColour)
-    {
-      stroke(255, 0, 0);
-    }
-  }
-  printText("Fuel: " + (int) lander.fuel, font_size.small, 10, 60);
-  stroke(255, 255, 102);    
-  printText("Kitties: " + (int) lander.kitties, font_size.small, 10, 85);
-  
+  drawHud();
   spawnPowerup();
 }
 
@@ -345,21 +313,7 @@ void checkCollisions()
           children.remove(fuel);
           addGameObject(e);
         }
-        /*
-        l = landscape.findVertex();  
-      
-        for(int j = -2 ; j < 3 ; j ++)
-        {
-          if (PVector.dist(landscape.vertices.get(l + j), child.position) < child.halfWidth)
-          {
-            FuelPowerup fuel = (FuelPowerup) child;
-            Explosion e = new Explosion(fuel.vertices, fuel.position.get(), fuel.colour);
-            e.theta = child.theta;
-            children.remove(fuel);
-            addGameObject(e);
-          }
-        }
-        */
+        
       }
     }
   }
@@ -390,11 +344,56 @@ void draw()
       game(true);
       gameOver();
       break;  
-  }
-  
-  println(children.size());
+  }  
 }
 
+void drawHud()
+{
+  stroke(0, 255, 255);
+  if (overLandSite && lander.velocity.mag() > safeSpeed)
+  {
+    if (flipColour)
+    {
+      stroke(255, 0, 0);
+    }
+  }
+  float linesWidth = width / 3;
+  float barHeight = 18;
+  float barStart = 90;
+  printText("Speed: ", font_size.small, 10, 10);
+  line(barStart, 10 + barHeight, barStart + map(lander.velocity.mag(), 0, lander.maxSpeed, 0, linesWidth), 10 + barHeight);
+  line(barStart, 10 + barHeight, barStart, 10);
+  stroke(255, 204, 204);
+  if (overLandSite && abs(lander.theta) > safeAngle)
+  {
+    if (flipColour)
+    {
+      stroke(255, 0, 0);
+    }
+  }
+  float halfLineWidth = linesWidth / 4;
+  float mapTo = map(lander.theta, -PI, PI, -halfLineWidth, halfLineWidth);  
+  printText("Angle: ", font_size.small, 10, 35);  
+  line(barStart + halfLineWidth, 35 + barHeight, barStart + halfLineWidth + mapTo, 35 + barHeight);  
+  line(barStart + halfLineWidth, 35, barStart + halfLineWidth, 35 + barHeight);  
+  stroke(0, 255, 0);  
+  if (lander.fuel <= 0)
+  {
+    playBlip = true;
+    if (flipColour)
+    {
+      stroke(255, 0, 0);
+    }
+  }
+  printText("Fuel:", font_size.small, 10, 60);
+  line(barStart, 60 + barHeight, barStart + map(lander.fuel, 0, lander.maxFuel, 0, linesWidth), 60 + barHeight);  
+  line(barStart, 60, barStart, 60 + barHeight);
+  stroke(255, 255, 102);    
+  printText("Kitties:", font_size.small, 10, 85);
+  
+  line(barStart, 85 + barHeight, barStart + map(lander.kitties, 0, 100, 0, linesWidth), 85 + barHeight);  
+  line(barStart, 85, 90, 85 + barHeight);  
+}
 
 void addGameObject(GameObject o)
 {

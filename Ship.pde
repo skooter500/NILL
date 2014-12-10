@@ -12,7 +12,7 @@ class Ship extends GameObject
   AudioPlayer shootSound;
   AudioPlayer hyperDriveSound;
   float fuel;
-
+  float maxFuel = 1500;
   float kitties = 0;
 
   boolean landed = false;
@@ -154,11 +154,16 @@ class Ship extends GameObject
         theta += timeDelta * angularVelocity;
       }
       
-      if (theta > TWO_PI || theta < - TWO_PI)
+      if (theta < - PI)
       {
-        theta = 0;
+        theta = PI;
       }
       
+      if (theta > PI)
+      {
+        theta = -PI;
+      }
+            
       look.x = sin(theta);
       look.y = -cos(theta);
 
@@ -193,6 +198,7 @@ class Ship extends GameObject
       
       position.add(PVector.mult(velocity, timeDelta));
       // Apply damping
+      speed = velocity.mag();
       velocity.mult(damping);
       
       // Reset the force

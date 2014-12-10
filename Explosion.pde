@@ -26,7 +26,6 @@ class Explosion extends GameObject
         dir.mult(speed);
         directions.add(dir);
     }
-    println("New explosion");
     playSound(explosionSound);
   }
 

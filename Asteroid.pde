@@ -1,14 +1,14 @@
-class FuelPowerup extends GameObject implements Powerup
+class Asteroid extends GameObject implements Powerup
 {
-  FuelPowerup()
+  Asteroid()
   {
-    w = 30;
-    h = 30;
+    w = random(20, 50);
+    h = w;
     halfWidth = w / 2;
     halfHeight = h / 2;
     position = randomOffscreenPoint(w);        
     theta = 0.0f;
-    colour = color(0, 255, 0);
+    colour = color(255);
     mass = 10.0f;
     velocity = new PVector(random(-100, 100), random(0, 1));
     
@@ -20,8 +20,16 @@ class FuelPowerup extends GameObject implements Powerup
     for (int i = 1 ; i <= sides ; i ++)
     {
       float theta1 = (float) i  * thetaInc;
-      x = sin(theta1) * radius;
-      y = -cos(theta1) * radius;
+      if ((int)random(0,3) == 0)
+      {
+        x = sin(theta1) * (radius / 2.0f);
+        y = -cos(theta1) * (radius / 2.0f);
+      } 
+      else
+      {
+        x = sin(theta1) * radius;
+        y = -cos(theta1) * radius;
+      }    
       vertices.add(new PVector(lastX, lastY));  
       vertices.add(new PVector(x, y));  
       lastX = x;
