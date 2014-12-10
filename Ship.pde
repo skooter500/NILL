@@ -11,15 +11,12 @@ class Ship extends GameObject
   color colour;
   AudioPlayer shootSound;
   AudioPlayer hyperDriveSound;
-  float halfWidth;
-  float halfHeight;
   float fuel;
+
   float kitties = 0;
 
   boolean landed = false;
   
-  PVector gravity = new PVector(0, 20, 0);            
-
   ArrayList<PVector> vertices = new ArrayList<PVector>();
   
   ControllDevice device;
@@ -40,8 +37,10 @@ class Ship extends GameObject
     velocity = new PVector(0,0);
     kitties = 0;
     fuel = 500;
-    position.x = width / 2;
+    maxSpeed = 80;
+    position.x = worldWidth / 2;
     position.y = height / 2;
+
     exploding = false;
     landed = false;    
   }
@@ -53,55 +52,41 @@ class Ship extends GameObject
     halfWidth = w / 2;
     halfHeight = h / 2;
     
-    position.x = width / 2;
-    position.y = height / 2;
-
+    
     angularVelocity = 1.0f;
     mass = 0.5f;
     colour = color(0, 255, 255);
-    int numSides = 8;
-    float thetaInc = TWO_PI / (float) numSides;
     
-    float topSection = h * 0.5f;
-    float radius = topSection / 2;
-    PVector last = new PVector(0, - radius * 2);
+    float thetaInc = TWO_PI / (float) 3;
+    
+    float radius = halfHeight;
+    vertices.add(new PVector(0, - radius));
+    vertices.add(new PVector(sin(thetaInc) * radius, - cos(thetaInc) * radius));
+    
+    vertices.add(new PVector(sin(thetaInc) * radius, - cos(thetaInc) * radius));
+    vertices.add(new PVector(0, 0));
 
-    for (int i = 1 ; i <= numSides ; i ++)
-    {
-      float theta = i * thetaInc;
-      PVector p = new PVector();
-      p.x = sin(theta) * radius;
-      p.y = -radius -cos(theta) * radius;
-      vertices.add(last);
-      vertices.add(p);
-      last = p;
-    }
-    
+    vertices.add(new PVector(0, 0));
+    vertices.add(new PVector(-sin(thetaInc) * radius, - cos(thetaInc) * radius));
+
+    vertices.add(new PVector(-sin(thetaInc) * radius, - cos(thetaInc) * radius));
+    vertices.add(new PVector(0, - radius));
+        
     // Add left leg
-    vertices.add(vertices.get(5).get());
-    vertices.add(new PVector(w * 0.3f, h * 0.2f));
-    
-    last = vertices.get(vertices.size() - 1).get();   
-    vertices.add(last);
+    vertices.add(new PVector(- w * 0.1f, h * 0.1f));
+    vertices.add(new PVector(- w * 0.3f, h * 0.5f));
+        
+    PVector last = vertices.get(vertices.size() - 1).get();
+    vertices.add(new PVector(last.x - w * 0.1f, last.y));
+    vertices.add(new PVector(last.x + w * 0.1f, last.y));
+
+    vertices.add(new PVector(w * 0.1f, h * 0.1f));
     vertices.add(new PVector(w * 0.3f, h * 0.5f));
-    
+        
     last = vertices.get(vertices.size() - 1).get();
     vertices.add(new PVector(last.x - w * 0.1f, last.y));
     vertices.add(new PVector(last.x + w * 0.1f, last.y));
-    
-    // Add right leg
-    vertices.add(vertices.get(10).get());
-    vertices.add(new PVector(-w * 0.3f, h * 0.2f));
 
-    last = vertices.get(vertices.size() - 1).get();   
-    vertices.add(last);
-    vertices.add(new PVector(-w * 0.3f, h * 0.5f));
-    
-    last = vertices.get(vertices.size() - 1).get();   
-    vertices.add(new PVector(last.x - w * 0.1f, last.y));
-    vertices.add(new PVector(last.x + w * 0.1f, last.y));
-    
-    
   }
   
   float angularVelocity;
@@ -135,18 +120,23 @@ class Ship extends GameObject
       {
         if (!lander.landed)
         {
+          println(hand.getRawPosition().y);
           lander.theta = radians(hand.getPitch());
         }
-      }      
+      }   
+          
       if ((device != null && device.getSlider(4).getValue() > 0.5f) || (checkKey(forward)) || (hand != null && hand.getPosition().y > 550))
       {   
-          if (fuel > 0)
+          if (fuel > 0 && position.y > height * .2)
           {  
-            //playSound(thrustSound, true);
             force.add(PVector.mult(look, newtons));
             jet = true;
             landed = false;
             fuel --;
+          }
+          else
+          {
+            jet = false;
           }
       }      
       else
@@ -175,6 +165,20 @@ class Ship extends GameObject
       PVector acceleration = PVector.div(force, mass);
       acceleration.add(gravity);
       velocity.add(PVector.mult(acceleration, timeDelta));   
+      if (velocity.mag() > maxSpeed)
+      {
+        velocity.normalize();
+        velocity.mult(maxSpeed);
+      }
+      if (position.x < width / 2)
+      {
+        position.x = width / 2;
+      }
+      
+      if (position.x > worldWidth - width / 2)
+      {
+        position.x = worldWidth - width / 2;
+      }
    
      if (velocity.mag() > maxSpeed)
       {
@@ -189,7 +193,7 @@ class Ship extends GameObject
       
       position.add(PVector.mult(velocity, timeDelta));
       // Apply damping
-      velocity.mult(0.995f);
+      velocity.mult(damping);
       
       // Reset the force
       force.setMag(0);
@@ -202,14 +206,15 @@ class Ship extends GameObject
     if (exploding)
     {
       return;
-    }
-    stroke(255);
+    }    
     pushMatrix();
-    translate(width / 2, position.y);
+    stroke(255);
+    translate(position.x, position.y);
     rotate(theta);
     scale(scaleF);
     stroke(colour);
     noFill();    
+    //ellipse(0, 0, w, h);
             
     for (int i = 1 ; i < vertices.size() ; i += 2)
     {
@@ -221,8 +226,8 @@ class Ship extends GameObject
     if (jet)
     {
       stroke(0, random(100, 255), random(100, 255));
-      line(-halfWidth * 0.3f, 0, 0, halfHeight);
-      line(halfWidth * 0.3f, 0, 0, halfHeight);
+      line(-halfWidth * 0.3f, h * 0.1, 0, halfHeight);
+      line(halfWidth * 0.3f, h * 0.1, 0, halfHeight);
     }
     popMatrix();
     

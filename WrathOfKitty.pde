@@ -16,7 +16,7 @@ ArrayList<KittyBox> boxes = new ArrayList<KittyBox>();
 boolean[] keys = new boolean[526];
 Ship lander;
 Landscape landscape;
-Explosion explosion;
+Explosion playerExplosion;
 ControllIO controll;
 Minim minim;//audio context
 LeapMotion leap;
@@ -34,17 +34,32 @@ AudioPlayer explosionSound;
 AudioPlayer pickupSound;
 AudioPlayer blipSound;
 AudioPlayer thrustSound;
-
+AudioPlayer rescueSound;
+PVector gravity = new PVector(0, 20, 0);
+float damping = 0.995f;
 boolean flipColour;
+float worldWidth = 5000;
+float landscapeToScreenX;
+
+boolean devMode = false;
+
+// Spawn powerup every 5 seconds
+float spawnInterval = 10.0f;
  
 boolean sketchFullScreen() {
-  return false;
+  return ! devMode;
 }
 
 void setup()
 {
-  //size(displayWidth, displayHeight);
-  size(800, 600);
+  if (devMode)
+  {
+    size(800, 600);
+  }
+  else
+  {
+    size(displayWidth, displayHeight);
+  }
   smooth();
   noCursor();
   
@@ -56,29 +71,42 @@ void setup()
   pickupSound = minim.loadFile("pickup.wav");
   thrustSound = minim.loadFile("thrust.wav");
   blipSound = minim.loadFile("blip.wav");
+  rescueSound = minim.loadFile("rescue.wav");
   
   for (font_size size:font_size.values())  
   {
     letters[size.index] = new MovingLetters(this, size.size, 1, 0);
-  }
- 
-
-  lander = new Ship(getController());
-  lander.forward = UP;
-  lander.left = LEFT;
-  lander.right = RIGHT;
+  }  
   reset();      
+}
+
+void spawnPowerup()
+{
+  if (frameCount % ((int) (spawnInterval * 60.0f)) == 0)
+  {
+    GameObject powerup = new FuelPowerup(); 
+    children.add(powerup);
+  }
 }
 
 
 void reset()
 {
-  lander.reset();
   children.clear();
   boxes.clear();
-  children.add(lander);
-  landscape = new Landscape(5, .03f, -5000, 5000);
+  landscape = new Landscape(5, .03f, worldWidth);  
   children.add(landscape);  
+  lander = new Ship(getController());
+  lander.forward = UP;
+  lander.left = LEFT;
+  lander.right = RIGHT;  
+  lander.reset();  
+  children.add(lander);
+  
+  for (int i = 0 ; i < worldWidth / 5 ; i ++)
+  {
+    children.add(new SmallStar());
+  }  
 }
 
 void splash()
@@ -129,9 +157,16 @@ void printText(String text, font_size size, int x, int y)
   letters[size.index].text(text, x, y);  
 }
 
+boolean isOnScreen(PVector pos)
+{
+  return (abs(pos.x - lander.position.x) < width / 2); 
+}
 
 void game(boolean update)
 {    
+  float landscapeToScreenX = lander.position.x - (width / 2);
+  pushMatrix();
+  translate(-landscapeToScreenX, 0);
   playBlip = false;
   for (int i = children.size()-1; i >= 0; i--) 
   {
@@ -142,13 +177,16 @@ void game(boolean update)
       landscape.position.x = (width / 2) - (lander.position.x);
     }
     entity.display();
-    landscape.playerVertex = landscape.findPlayerVertex(lander);    
     if (! entity.alive) 
     {
       children.remove(i);
     }
   }
+  popMatrix();
+  
   checkCollisions();
+  
+  
   stroke(0, 255, 255);
   if (overLandSite && lander.velocity.mag() > safeSpeed)
   {
@@ -167,8 +205,8 @@ void game(boolean update)
     }
   }
   printText("Angle: " + (int) degrees(lander.theta), font_size.small, 10, 35);
-  stroke(0, 255, 255);
   
+  stroke(0, 255, 0);  
   if (lander.fuel <= 0)
   {
     playBlip = true;
@@ -178,8 +216,10 @@ void game(boolean update)
     }
   }
   printText("Fuel: " + (int) lander.fuel, font_size.small, 10, 60);
-  stroke(0, 255, 255);    
+  stroke(255, 255, 102);    
   printText("Kitties: " + (int) lander.kitties, font_size.small, 10, 85);
+  
+  spawnPowerup();
 }
 
 KittyBox findKittyBox()
@@ -214,34 +254,26 @@ KittyBox findKittyBox()
 
 void checkCollisions()
 {
-  if (explosion != null && explosion.alive)
+  if (playerExplosion != null && playerExplosion.alive)
   {
-    explosion = null;
+    playerExplosion = null;
     gameState = 2;
   }
-     
-  // Check player landed
-  if (lander.exploding)
-  {
-    return;
-  }
-  
-  int l = landscape.findPlayerVertex(lander);
-  float py = lander.position.y + lander.halfHeight;
-  
+    
+  int l = landscape.findVertex(lander.position.x);  
   if (landscape.isLandSite(l))
   {
     stroke(255, 51, 255);
     printText("Over land site", font_size.small, 10, 110);
     overLandSite = true;
-    if (py  >= landscape.vertices.get(l).y)
+    float py = lander.position.y + lander.halfHeight;
+    if (py  >= landscape.vertices.get(l).y && !lander.exploding)
     {      
       if (abs(lander.theta) > safeAngle || lander.velocity.mag() > safeSpeed)
       {
-        explosion = new Explosion(lander.vertices, new PVector(width / 2, lander.position.y), lander.colour);
-        explosion.theta = lander.theta;
-        addGameObject(explosion);
-        playSound(explosionSound);
+        playerExplosion = new Explosion(lander.vertices, new PVector(width / 2, lander.position.y), lander.colour);
+        playerExplosion.theta = lander.theta;
+        addGameObject(playerExplosion);        
         lander.exploding = true;
       } 
       else
@@ -255,7 +287,7 @@ void checkCollisions()
         KittyBox box = findKittyBox();
         if (box != null)
         {
-          playSound(pickupSound);
+          playSound(rescueSound);
           lander.kitties += box.kitties;
           boxes.remove(box);
           children.remove(box);          
@@ -268,19 +300,68 @@ void checkCollisions()
     overLandSite = false;    
   }
   
-  if (! lander.landed)
+  for (int i = 0 ; i < children.size() ; i ++)
   {
-    for(int i = -2 ; i < 3 ; i ++)
+    GameObject child = children.get(i);
+    if (! (child instanceof Landscape))
     {
-      if (PVector.dist(landscape.vertices.get(l + i), lander.position) < lander.halfWidth)
-      {
-        explosion = new Explosion(lander.vertices, new PVector(width / 2, lander.position.y), lander.colour);
-        explosion.theta = lander.theta;
-        addGameObject(explosion);
-        lander.exploding = true;
-        playSound(explosionSound);
+      if (child instanceof Ship && !lander.landed && !lander.exploding)
+      {  
+        // Ship and landscape        
+        for(int j = -2 ; j < 3 ; j ++)
+        {
+          if (PVector.dist(landscape.vertices.get(l + j), lander.position) < lander.halfWidth)
+          {
+            playerExplosion = new Explosion(lander.vertices, lander.position.get(), lander.colour);
+            playerExplosion.theta = lander.theta;
+            addGameObject(playerExplosion);
+            lander.exploding = true;
+          }
+        }
+        // Ship and powerup
+        for (int j = children.size() - 1 ; j >= 0  ; j --)
+        {
+          GameObject otherChild = children.get(j);
+          if (otherChild instanceof Powerup)
+          {
+            if (PVector.dist(lander.position, otherChild.position) < lander.halfWidth + otherChild.halfWidth)
+            {
+              ((Powerup)otherChild).applyTo(lander);
+              children.remove(otherChild);
+              playSound(pickupSound);
+            }
+          }
+        }
       }
-    }      
+      // Powerup and landscape
+      if (child instanceof Powerup)
+      {        
+        float h = landscape.findHeight(child.position.x);
+        if (abs(h  - child.position.y) < child.halfHeight)
+        {
+          FuelPowerup fuel = (FuelPowerup) child;
+          Explosion e = new Explosion(fuel.vertices, fuel.position.get(), fuel.colour);
+          e.theta = child.theta;
+          children.remove(fuel);
+          addGameObject(e);
+        }
+        /*
+        l = landscape.findVertex();  
+      
+        for(int j = -2 ; j < 3 ; j ++)
+        {
+          if (PVector.dist(landscape.vertices.get(l + j), child.position) < child.halfWidth)
+          {
+            FuelPowerup fuel = (FuelPowerup) child;
+            Explosion e = new Explosion(fuel.vertices, fuel.position.get(), fuel.colour);
+            e.theta = child.theta;
+            children.remove(fuel);
+            addGameObject(e);
+          }
+        }
+        */
+      }
+    }
   }
 }
 
@@ -310,6 +391,8 @@ void draw()
       gameOver();
       break;  
   }
+  
+  println(children.size());
 }
 
 
@@ -337,9 +420,9 @@ void playSound(AudioPlayer sound, boolean loop)
   else
   {
     sound.loop();
-    if (!sound.isPlaying())
+    if (sound.isPlaying())
     {
-      
+      return;
     }
   }    
   sound.play(); 

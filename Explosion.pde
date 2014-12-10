@@ -21,12 +21,13 @@ class Explosion extends GameObject
     }
     for (int i = 0 ;  i < vertices.size() ; i +=2)
     {
-        PVector dir = new PVector(random(-1, 1), random(-1, 1));
+        PVector dir = new PVector(random(-1, 1), random(-1, 0));
         dir.normalize();
         dir.mult(speed);
         directions.add(dir);
     }
     println("New explosion");
+    playSound(explosionSound);
   }
 
   void update()
@@ -49,7 +50,8 @@ class Explosion extends GameObject
    pushMatrix(); 
    translate(position.x, position.y);
    rotate(theta);
-   stroke(colour);
+   float alpha = (1.0f - ellapsed / liveFor) * 255.0f;
+   stroke(red(colour), green(colour), blue(colour), (int)alpha);
    for (int i = 1 ; i < vertices.size() ; i += 2)
     {        
         PVector from = vertices.get(i - 1);

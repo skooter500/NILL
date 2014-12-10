@@ -14,13 +14,15 @@ class KittyBox extends GameObject
   
   void display()
   {
-    pushMatrix();
-    noFill();
-    float x = position.x + (width / 2) - (lander.position.x);
-    translate(x, position.y);
-    stroke(255, 255, 102);    
-    printText("" + kitties, font_size.small, (int)-5, (int)-22);
-    rect(-halfWidth, -h, w, h);
-    popMatrix();
+    if (isOnScreen(position))
+    {
+        pushMatrix();
+        noFill();
+        translate(position.x, position.y);
+        stroke(255, 255, 102);    
+        printText("" + kitties, font_size.small, (int)-5, (int)-22);
+        rect(-halfWidth, -h, w, h);
+        popMatrix();
+    }
   }
 }

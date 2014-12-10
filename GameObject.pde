@@ -7,6 +7,8 @@ class GameObject
   PVector force;
   float w;
   float h;
+  float halfWidth;
+  float halfHeight;  
   float theta;
   float scaleF = 1.0f;
   float speed = 100.0f;
@@ -54,29 +56,9 @@ class GameObject
   }
   
   PVector randomOffscreenPoint(float border)
-  {
-    int i = (int) random(0, 5);
-    float x = 0, y = 0;
-    switch(i)
-    {
-      case 0:
-        x = random(0, width);
-        y = -border;
-        break;
-      case 1:
-        x = random(0, width);
-        y = height + border;
-        break;     
-      case 2:        
-        x = -border;
-        y = random(0, height);
-        break;
-      case 3:
-        x = width + border;
-        y = random(0, height);
-        break;
-    }      
-    return new PVector(x, y);    
+  {    
+    float left = lander.position.x - width / 2;
+    return new PVector(random(left, left + width/ 2), -border);    
   }
   
   void wrap()
