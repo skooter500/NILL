@@ -24,13 +24,13 @@ LeapMotion leap;
 boolean overLandSite;
 
 int gameState = 0;
+int winState = 0;
 int CENTRED = -1;
 MovingLetters[] letters = new MovingLetters[3];
 
 float safeAngle = 0.2f;
 float safeSpeed = 30.0f;
 float timeDelta = 1.0f / 60.0f;
-
 
 AudioPlayer explosionSound;
 AudioPlayer pickupSound;
@@ -46,7 +46,7 @@ float landscapeToScreenX;
 boolean devMode = false;
 
 // Spawn powerup every 5 seconds
-float spawnInterval = 10.0f;
+float spawnInterval = 5.0f;
  
 boolean sketchFullScreen() {
   return ! devMode;
@@ -91,7 +91,8 @@ void spawnPowerup()
     switch (i)
     {
       case 0:
-        powerup = new Asteroid();              
+        powerup = new Asteroid();
+        break;        
       default:              
         powerup = new FuelPowerup();
         break;
@@ -126,8 +127,8 @@ void splash()
   stroke(255);
   
   printText("NILL", font_size.large, CENTRED, 100);  
-  printText("Non-Infinite Luner Lander", font_size.large, CENTRED, 300);
-  printText("Programmed by Bryan Duggan", font_size.large, CENTRED, 500);
+  printText("Non-Infinite Luner Lander", font_size.large, CENTRED, 200);
+  printText("Programmed by Bryan Duggan", font_size.large, CENTRED, 300);
   if (frameCount / 60 % 2 == 0)
   {
     printText("Press SPACE to play", font_size.large, CENTRED, height - 100);  
@@ -146,7 +147,14 @@ void gameOver()
   printText("NILL", font_size.large, CENTRED, 100);  
   if (frameCount / 60 % 2 == 0)
   {
-    printText("Game Over", font_size.large, CENTRED, 200);
+    if (winState == 0)
+    {
+      printText("You died - Game Over", font_size.large, CENTRED, 200);
+    }
+    else
+    {
+      printText("You won - Game Over", font_size.large, CENTRED, 200);
+    }
   }
   printText("Press SPACE to play", font_size.large, CENTRED, 300);
   
@@ -197,8 +205,17 @@ void game(boolean update)
   popMatrix();
   
   checkCollisions();
+  checkWinState();
   drawHud();
   spawnPowerup();
+}
+
+void checkWinState()
+{
+  if (boxes.size() == 0)
+  {
+    lander.escaping = true;
+  }
 }
 
 KittyBox findKittyBox()
@@ -252,7 +269,8 @@ void checkCollisions()
       {
         playerExplosion = new Explosion(lander.vertices, new PVector(width / 2, lander.position.y), lander.colour);
         playerExplosion.theta = lander.theta;
-        addGameObject(playerExplosion);        
+        addGameObject(playerExplosion); 
+        winState = 0;
         lander.exploding = true;
       } 
       else
@@ -293,6 +311,7 @@ void checkCollisions()
           {
             playerExplosion = new Explosion(lander.vertices, lander.position.get(), lander.colour);
             playerExplosion.theta = lander.theta;
+            winState = 0;
             addGameObject(playerExplosion);
             lander.exploding = true;
           }

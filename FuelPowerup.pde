@@ -30,8 +30,6 @@ class FuelPowerup extends GameObject implements Powerup
     
   }  
   
-  ArrayList<PVector> vertices = new ArrayList<PVector>();
-  
   void applyTo(Ship ship)
   {
     ship.fuel += (int) random(100, 500);

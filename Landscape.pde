@@ -98,7 +98,7 @@ class Landscape extends GameObject
       PVector p = new PVector();
       // Should we place a land site
       float r = random(0, 1);
-      if (r <= landProbability && i - lastSite > 10)
+      if (r <= landProbability && i - lastSite > 10 && lastX > width && lastX < worldWidth - width)
       {
         p.x = lastX + landSiteWidth;
         p.y = lastY;      

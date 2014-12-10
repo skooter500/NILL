@@ -40,7 +40,8 @@ class Ship extends GameObject
     position.y = height / 2;
 
     exploding = false;
-    landed = false;    
+    landed = false;
+    escaping = false;    
   }
   
   Ship()
@@ -99,6 +100,8 @@ class Ship extends GameObject
   
   boolean lastPressed = false;
   boolean exploding  = false;
+  
+  boolean escaping  = false;
   
   boolean fade = true;
    
@@ -172,6 +175,18 @@ class Ship extends GameObject
       if (theta > PI)
       {
         theta = -PI;
+      }
+      
+      if (escaping)
+      {
+        theta = 0;
+        jet = true;
+        force.add(PVector.mult(new PVector(0, -1), newtons));
+        if (position.y < - 10)
+        {
+          winState = 1;
+          gameState = 2;
+        }        
       }
             
       look.x = sin(theta);

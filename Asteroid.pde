@@ -38,15 +38,15 @@ class Asteroid extends GameObject implements Powerup
     vertices.add(new PVector(lastX, lastY));  
     vertices.add(new PVector(0, -radius));  
     
-  }  
-  
-  ArrayList<PVector> vertices = new ArrayList<PVector>();
+  }   
   
   void applyTo(Ship ship)
   {
-    playerExplosion = new Explosion(ship.vertices, new PVector(width / 2, ship.position.y), ship.colour);
+    playerExplosion = new Explosion(ship.vertices, ship.position.get(), ship.colour);
     playerExplosion.theta = ship.theta;
     addGameObject(playerExplosion);        
+    Explosion e = new Explosion(vertices, position.get(), colour);
+    addGameObject(e);            
     lander.exploding = true;
   }
   
