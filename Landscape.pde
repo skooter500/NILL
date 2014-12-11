@@ -13,7 +13,7 @@ class Landscape extends GameObject
   {
     if (vIndex > 0 && vIndex < vertices.size())
     {
-      return (vertices.get(vIndex).x - vertices.get(vIndex - 1).x == landSiteWidth);
+      return (vertices.get(vIndex).x - vertices.get(vIndex - 1).x > (landSiteWidth * 0.3f));
     }
     else
     {
@@ -99,7 +99,7 @@ class Landscape extends GameObject
       PVector p = new PVector();
       // Should we place a land site
       float r = random(0, 1);
-      if (r <= landProbability && i - lastSite > 10 && lastX > width && lastX < worldWidth - width)
+      if (r <= landProbability && i - lastSite > 10 && (lastX > width / 2) && lastX < worldWidth - width)
       {
         p.x = lastX + landSiteWidth;
         p.y = lastY;      

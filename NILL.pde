@@ -450,7 +450,7 @@ void drawHud()
   line(barStart + halfLineWidth, 35 + barHeight, barStart + halfLineWidth + mapTo, 35 + barHeight);  
   line(barStart + halfLineWidth, 35, barStart + halfLineWidth, 35 + barHeight);  
   stroke(0, 255, 0);  
-  if (lander.fuel <= 0)
+  if (lander.fuel <= 100)
   {
     playBlip = true;
     if (flipColour)
@@ -462,7 +462,7 @@ void drawHud()
   line(barStart, 60 + barHeight, barStart + map(lander.fuel, 0, lander.maxFuel, 0, linesWidth), 60 + barHeight);  
   line(barStart, 60, barStart, 60 + barHeight);
   stroke(255, 255, 102);    
-  printText("Kitties:", font_size.small, 10, 85);
+  printText("PODS:", font_size.small, 10, 85);
   
   line(barStart, 85 + barHeight, barStart + map(lander.kitties, totalKitties, 0, 0, linesWidth), 85 + barHeight);  
   line(barStart, 85, 90, 85 + barHeight);  
