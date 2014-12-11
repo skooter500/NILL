@@ -37,6 +37,8 @@ AudioPlayer pickupSound;
 AudioPlayer blipSound;
 AudioPlayer rescueSound;
 AudioPlayer soundtrack;
+AudioPlayer thrustSound;
+
 PVector gravity = new PVector(0, 20, 0);
 float damping = 0.995f;
 boolean flipColour;
@@ -75,7 +77,7 @@ void setup()
   blipSound = minim.loadFile("blip.wav");
   rescueSound = minim.loadFile("rescue.wav");
   soundtrack =  minim.loadFile("soundtrack.mp3");
-  
+  thrustSound = minim.loadFile("thrust.mp3");
   for (font_size size:font_size.values())  
   {
     letters[size.index] = new MovingLetters(this, size.size, 1, 0);
@@ -166,7 +168,7 @@ void gameOver()
     }
     else
     {
-      printText("You won! - Game Over", font_size.large, CENTRED, 200);
+      printText("All Pods collected - Game Over", font_size.large, CENTRED, 200);
     }
   }
   printText("Press SPACE to play", font_size.large, CENTRED, 300);
@@ -228,6 +230,7 @@ void checkWinState()
   if (boxes.size() == 0)
   {
     lander.escaping = true;
+    playSound(thrustSound);
   }
 }
 
