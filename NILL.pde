@@ -82,7 +82,7 @@ void setup()
   {
     letters[size.index] = new MovingLetters(this, size.size, 1, 0);
   }  
-  
+ 
 }
 
 void spawnPowerup()
@@ -227,6 +227,10 @@ void game(boolean update)
 
 void checkWinState()
 {
+  if (lander.escaping)
+  {
+    return;
+  }
   if (boxes.size() == 0)
   {
     lander.escaping = true;

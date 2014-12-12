@@ -26,8 +26,7 @@ class FuelPowerup extends GameObject implements Powerup
       vertices.add(new PVector(x, y));  
       lastX = x;
       lastY = y; 
-    } 
-    
+    }     
   }  
   
   void applyTo(Ship ship)
