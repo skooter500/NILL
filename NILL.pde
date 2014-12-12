@@ -171,7 +171,7 @@ void gameOver()
       printText("All Pods collected - Game Over", font_size.large, CENTRED, 200);
     }
   }
-  printText("Press SPACE to play", font_size.large, CENTRED, 300);
+  printText("Press SPACE to play again", font_size.large, CENTRED, 300);
   
   stroke(255);  
   if (checkKey(' '))
