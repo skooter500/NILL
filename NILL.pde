@@ -76,7 +76,7 @@ void setup()
   pickupSound = minim.loadFile("pickup.wav");
   blipSound = minim.loadFile("blip.wav");
   rescueSound = minim.loadFile("rescue.wav");
-  soundtrack =  minim.loadFile("soundtrack.mp3");
+  soundtrack =  minim.loadFile("LunarLanding.mp3");
   thrustSound = minim.loadFile("thrust.mp3");
   for (font_size size:font_size.values())  
   {
@@ -139,7 +139,7 @@ void splash()
   printText("NILL", font_size.large, CENTRED, 100);  
   printText("Non-Infinite Luner Lander", font_size.large, CENTRED, 200);
   printText("Programmed by Bryan Duggan", font_size.large, CENTRED, 300);
-  printText("Music by Eric Skiff", font_size.large, CENTRED, 400);
+  printText("Soundtrack by Kevin Doyle", font_size.large, CENTRED, 400);
   if (frameCount / 60 % 2 == 0)
   {
     printText("Press SPACE to play", font_size.large, CENTRED, height - 100);  
