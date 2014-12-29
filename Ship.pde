@@ -136,7 +136,7 @@ class Ship extends GameObject
         }
       }   
           
-      if ((device != null && device.getSlider(4).getValue() > 0.5f) || (checkKey(forward)) || (hand != null && hand.getRawPosition().y < 200))
+      if ((device != null && (device.getSlider(4).getValue() > 0.5f || device.getSlider(4).getValue() < -0.5f)) || (checkKey(forward)) || (hand != null && hand.getRawPosition().y < 200))
       {   
           if (fuel > 0 && position.y > height * .2)
           {  
