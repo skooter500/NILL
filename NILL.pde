@@ -4,11 +4,9 @@
 // https://github.com/voidplus/leap-motion-processing
 
 import ddf.minim.*;
-import procontroll.*;
 import de.ilu.movingletters.*;
-import procontroll.*;
-import net.java.games.input.*;
-import de.voidplus.leapmotion.*;
+//import net.java.games.input.*;
+//import de.voidplus.leapmotion.*;
 
 ArrayList<GameObject> children = new ArrayList<GameObject>();
 ArrayList<KittyBox> boxes = new ArrayList<KittyBox>();
@@ -17,9 +15,9 @@ boolean[] keys = new boolean[526];
 Ship lander;
 Landscape landscape;
 Explosion playerExplosion;
-ControllIO controll;
+//ControllIO controll;
 Minim minim;//audio context
-LeapMotion leap;
+//LeapMotion leap;
 
 boolean overLandSite;
 
@@ -51,26 +49,21 @@ boolean devMode = false;
 // Spawn powerup every 5 seconds
 float spawnInterval = 5.0f;
  
-boolean sketchFullScreen() {
+/*boolean sketchFullScreen() {
   return ! devMode;
 }
+*/
 
 void setup()
 {
-  if (devMode)
-  {
-    size(800, 600);
-  }
-  else
-  {
-    size(displayWidth, displayHeight);
-  }
+  
+  fullScreen();
   smooth();
   noCursor();
   
   minim = new Minim(this);  
-  controll = ControllIO.getInstance(this);
-  leap = new LeapMotion(this);
+  //controll = ControllIO.getInstance(this);
+  //leap = new LeapMotion(this);
   
   explosionSound = minim.loadFile("explosion.wav");
   pickupSound = minim.loadFile("pickup.wav");
@@ -117,7 +110,7 @@ void reset()
   totalKitties = 0;
   landscape = new Landscape(5, .03f, worldWidth);  
   children.add(landscape);  
-  lander = new Ship(getController());
+  lander = new Ship();
   lander.forward = UP;
   lander.left = LEFT;
   lander.right = RIGHT;  
@@ -520,7 +513,7 @@ boolean checkKey(int k)
   return false;
 }
 
-
+/*
 ControllDevice getController()
 {
   // Add all the xbox controllers
@@ -533,7 +526,7 @@ ControllDevice getController()
   }
   return null;
 }
-
+*/
 
 void keyPressed()
 { 
@@ -544,4 +537,3 @@ void keyReleased()
 {
   keys[keyCode] = false; 
 }
-
