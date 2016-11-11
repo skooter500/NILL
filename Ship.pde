@@ -17,7 +17,8 @@ class Ship extends GameObject
 
   boolean landed = false;
     
-  //ControllDevice device;
+  ControlDevice device;
+  boolean update;
   
   boolean jet;
      
@@ -46,6 +47,12 @@ class Ship extends GameObject
   
   Ship()
   {
+    this(true);
+  }
+  
+  Ship(boolean update)
+  {
+    this.update = update;
     w = 30;
     h = 30;
     halfWidth = w / 2;
@@ -111,6 +118,10 @@ class Ship extends GameObject
   
   void update()
   {                 
+      if (!update)
+      {
+        return;
+      }
       if (exploding)
       {
         return;
@@ -122,17 +133,23 @@ class Ship extends GameObject
       float cx = width / 2;
       float cy = height / 2;
                   
-      /*Hand hand = leap.getRightHand();
+      Hand hand = null;
+      if (leap != null)
+      {
+        hand = leap.getRightHand();
+        //println(hand.getPitch());
+      }
       if (hand != null)
       {
         if (!lander.landed)
         {
-          lander.theta = radians(hand.getPitch());
+          //lander.theta = radians(hand.getPitch());
         }
       } 
-      */
+      
+      
           
-      if ((checkKey(forward)))
+      if ((device != null && (device.getSlider(4).getValue() > 0.5f || device.getSlider(4).getValue() < -0.5f)) || (checkKey(forward)) || (hand != null && hand.getRawPosition().y < 200))      
       {   
           if (fuel > 0 && position.y > height * .2)
           {  
@@ -152,12 +169,12 @@ class Ship extends GameObject
         jet = false;
       }     
                  
-      if (checkKey(left) && ! landed) 
+      if (((device != null && device.getSlider(1).getValue() < - 0.5f) || checkKey(left)) && ! landed) 
       {
         theta -= timeDelta * angularVelocity;
       }    
       
-      if (checkKey(right) && ! landed)
+      if (((device != null && device.getSlider(1).getValue() > 0.5f)  || checkKey(right)) && ! landed)
       {
         theta += timeDelta * angularVelocity;
       }

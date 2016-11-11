@@ -1,34 +1,42 @@
+import de.voidplus.leapmotion.*;
+
+import net.java.games.input.*;
+import org.gamecontrolplus.*;
+import org.gamecontrolplus.gui.*;
+
 // Uses the following Processing libraries:
-// http://www.foobarquarium.de/blog/processing/MovingLetters/
-// http://creativecomputing.cc/p5libs/procontroll/
 // https://github.com/voidplus/leap-motion-processing
 
 import ddf.minim.*;
-import de.ilu.movingletters.*;
-//import net.java.games.input.*;
-//import de.voidplus.leapmotion.*;
 
 ArrayList<GameObject> children = new ArrayList<GameObject>();
 ArrayList<KittyBox> boxes = new ArrayList<KittyBox>();
 
+Ship lander = new Ship();
+GameObject[] splashPowerups = {new Ship(false), new KittyBox(), new FuelPowerup(), new Asteroid()};  
+String[] splashPowerupText = {"Lander", "Pod", "Fuel", "Asteroid"};
+
 boolean[] keys = new boolean[526];
-Ship lander;
+
 Landscape landscape;
 Explosion playerExplosion;
-//ControllIO controll;
 Minim minim;//audio context
-//LeapMotion leap;
+LeapMotion leap;
+ControlDevice device;
 
 boolean overLandSite;
 
 int gameState = 0;
 int winState = 0;
 int CENTRED = -1;
-MovingLetters[] letters = new MovingLetters[3];
+PFont[] fonts = new PFont[3];
 
 float safeAngle = 0.2f;
 float safeSpeed = 30.0f;
-float timeDelta = 1.0f / 60.0f;
+float timeDelta = 0;
+
+ControlIO control;
+
 
 AudioPlayer explosionSound;
 AudioPlayer pickupSound;
@@ -56,14 +64,13 @@ float spawnInterval = 5.0f;
 
 void setup()
 {
-  
-  fullScreen();
+  size(800, 800);
+  //fullScreen();
   smooth();
   noCursor();
   
   minim = new Minim(this);  
-  //controll = ControllIO.getInstance(this);
-  //leap = new LeapMotion(this);
+  leap = new LeapMotion(this);
   
   explosionSound = minim.loadFile("explosion.wav");
   pickupSound = minim.loadFile("pickup.wav");
@@ -71,11 +78,13 @@ void setup()
   rescueSound = minim.loadFile("rescue.wav");
   soundtrack =  minim.loadFile("LunarLanding.mp3");
   thrustSound = minim.loadFile("thrust.mp3");
-  for (font_size size:font_size.values())  
-  {
-    letters[size.index] = new MovingLetters(this, size.size, 1, 0);
-  }  
- 
+  
+  fonts[0] = createFont("Hyperspace Bold.otf", 24);
+  fonts[1] = createFont("Hyperspace Bold.otf", 32);
+  fonts[2] = createFont("Hyperspace Bold.otf", 48);
+  
+  control = ControlIO.getInstance(this);
+
 }
 
 void spawnPowerup()
@@ -99,7 +108,8 @@ void spawnPowerup()
 
 PVector randomOffscreenPoint(float border)
 {    
-  float left = lander.position.x - width / 2;
+  
+  float left = lander.position.x - width / 2;  
   return new PVector(random(left, left + width), -border);    
 }
 
@@ -111,6 +121,7 @@ void reset()
   landscape = new Landscape(5, .03f, worldWidth);  
   children.add(landscape);  
   lander = new Ship();
+  lander.device = device;
   lander.forward = UP;
   lander.left = LEFT;
   lander.right = RIGHT;  
@@ -129,15 +140,33 @@ void splash()
   background(0);
   stroke(255);
   
-  printText("NILL", font_size.large, CENTRED, 100);  
-  printText("Non-Infinite Luner Lander", font_size.large, CENTRED, 200);
-  printText("Programmed by Bryan Duggan", font_size.large, CENTRED, 300);
-  printText("Soundtrack by Kevin Doyle", font_size.large, CENTRED, 400);
+  printText("NILL - NILLs not Luner Lander", font_size.large, CENTRED, 100);  
+  printText("Programmed by Bryan Duggan, Music by Kevin Doyle", font_size.medium, CENTRED, 200);  
+  printText("Land safely to retrieve all the pods", font_size.small, CENTRED, 300);  
+  printText("Avoid the asteroids and don't crash", font_size.small, CENTRED, 350);
+  printText("Collect more fuel so you dont run out", font_size.small, CENTRED, 400);
+  printText("Keys: LEFT And RIGHT to steer, space to thrust", font_size.small, CENTRED, 450);
+  printText("XBOX Controller: Left stick to steer, Trigger to thrust", font_size.small, CENTRED, 500);
+  printText("Leap motion: Rotate hand to steer, press down to thrust", font_size.small, CENTRED, 550);
+  
+  for(int i = 0 ; i < splashPowerups.length ; i ++)
+  {
+    int x = (width / 2) - 80;
+    int y = 650 + (i * 50);
+    splashPowerups[i].position.x = x;
+    splashPowerups[i].position.y = y; 
+    splashPowerups[i].update();
+    splashPowerups[i].display();
+    stroke(255);  
+    printText(splashPowerupText[i], font_size.small, x + 50, y + 10);
+  }
+  
+  stroke(255);  
   if (frameCount / 60 % 2 == 0)
   {
-    printText("Press SPACE to play", font_size.large, CENTRED, height - 100);  
+    printText("Press START or SPACE to play", font_size.large, CENTRED, height - 100);  
   }
-  if (checkKey(' '))
+  if (checkForNewControlers() || checkKey(' '))
   {
     reset();
     gameState = 1;
@@ -148,26 +177,30 @@ void gameOver()
 {
   fill(255);
   stroke(255);  
-  printText("NILL", font_size.large, CENTRED, 100);  
+  printText("NILL", font_size.large, CENTRED, 300);  
   if (frameCount / 60 % 2 == 0)
   {
     if (winState == 0)
     {
-      printText("You crashed - Game Over", font_size.large, CENTRED, 200);
+      fill(255, 0, 0);
+      printText("You crashed - Game Over", font_size.large, CENTRED, 400);
     }    
     else if (winState == 1)
     {
-      printText("You ran out of fuel - Game Over", font_size.large, CENTRED, 200);      
+      fill(255, 0, 0);
+      printText("You ran out of fuel - Game Over", font_size.large, CENTRED, 400);      
     }
     else
     {
-      printText("All Pods collected - Game Over", font_size.large, CENTRED, 200);
+      fill(0, 255, 255);
+      printText("All Pods collected - Game Over", font_size.large, CENTRED, 400);
     }
   }
-  printText("Press SPACE to play again", font_size.large, CENTRED, 300);
+  fill(255);  
+  stroke(255); 
+  printText("Press START or SPACE to play again", font_size.large, CENTRED, 500);
   
-  stroke(255);  
-  if (checkKey(' '))
+  if (checkForNewControlers() || checkKey(' '))
   {
     reset();
     gameState = 1;
@@ -176,14 +209,25 @@ void gameOver()
 
 boolean playBlip = false;
 
-void printText(String text, font_size size, int x, int y)
+void printText(String text, font_size size, float x, float y)
 {
+  textFont(fonts[size.index]);
+  /*
   if (x == CENTRED)
   {
     x = (width / 2) - (int) (size.size * (float) text.length() / 2.5f);
   }
-  letters[size.index].text(text, x, y);  
+  letters[size.index].text(text, x, y);
+  */
+  
+  if (x == CENTRED)
+  {
+    x = (width / 2) - (textWidth(text) / 2);
+  }  
+    
+  text(text, x, y);
 }
+
 
 boolean isOnScreen(PVector pos)
 {
@@ -260,6 +304,25 @@ KittyBox findKittyBox()
     return null;    
 }
 
+boolean checkForNewControlers()
+{
+  // Add all the xbox controllers
+  for(int i = 0; i < control.getNumberOfDevices(); i++){
+    ControlDevice device = control.getDevice(i);
+    if (device.getName().toUpperCase().indexOf("XBOX 360") != -1)
+    {
+      if (device.getButton(7).pressed())
+      {
+        println("New player joined");
+        this.device = device;
+        return true;
+      }        
+    }    
+  }
+  return false;
+}
+
+
 
 void checkCollisions()
 {
@@ -278,8 +341,8 @@ void checkCollisions()
   int l = landscape.findVertex(lander.position.x);  
   if (landscape.isLandSite(l))
   {
-    stroke(255, 51, 255);
-    printText("Over land site", font_size.small, 10, 110);
+    fill(255, 51, 255);
+    printText("Over land site", font_size.small, 10, 170);
     overLandSite = true;
     float py = lander.position.y + lander.halfHeight;
     if (py  >= landscape.vertices.get(l).y && !lander.exploding)
@@ -371,11 +434,12 @@ void checkCollisions()
 }
 
 boolean muteToggle = true;
+long last = 0;
 
 void draw()
 {  
   background(0);
-  
+  strokeWeight(2);
   if (checkKey('M') )
   {
     if (muteToggle)
@@ -418,54 +482,65 @@ void draw()
       gameOver();
       break;  
   }  
+  
+  long now = millis();
+  timeDelta = (now - last) / 1000.0f;
+  last = now;
 }
 
 void drawHud()
 {
+  fill(0, 255, 255);
   stroke(0, 255, 255);
   if (overLandSite && lander.velocity.mag() > safeSpeed)
   {
     if (flipColour)
     {
+      fill(255, 0, 0);
       stroke(255, 0, 0);
     }
   }
-  float linesWidth = width / 3;
-  float barHeight = 18;
-  float barStart = 90;
-  printText("Speed: ", font_size.small, 10, 10);
+  float linesWidth = width / 4;
+  float barHeight = 16;
+  float barStart = 100;
+  printText("Speed: ", font_size.small, 10, 25);
   line(barStart, 10 + barHeight, barStart + map(lander.velocity.mag(), 0, lander.maxSpeed, 0, linesWidth), 10 + barHeight);
   line(barStart, 10 + barHeight, barStart, 10);
+  fill(255, 204, 204);
   stroke(255, 204, 204);
   if (overLandSite && abs(lander.theta) > safeAngle)
   {
     if (flipColour)
-    {
+    { 
       stroke(255, 0, 0);
+      fill(255, 0, 0);
     }
   }
-  float halfLineWidth = linesWidth / 4;
+  float halfLineWidth = linesWidth / 2;
   float mapTo = map(lander.theta, -PI, PI, -halfLineWidth, halfLineWidth);  
-  printText("Angle: ", font_size.small, 10, 35);  
-  line(barStart + halfLineWidth, 35 + barHeight, barStart + halfLineWidth + mapTo, 35 + barHeight);  
-  line(barStart + halfLineWidth, 35, barStart + halfLineWidth, 35 + barHeight);  
+  printText("Angle: ", font_size.small, 10, 55);  
+  line(barStart + halfLineWidth, 40 + barHeight, barStart + halfLineWidth + mapTo, 40 + barHeight);  
+  line(barStart + halfLineWidth, 40, barStart + halfLineWidth, 40  + barHeight);  
   stroke(0, 255, 0);  
+  fill(0, 255, 0);  
   if (lander.fuel <= 100)
   {
     playBlip = true;
     if (flipColour)
     {
       stroke(255, 0, 0);
+      fill(255, 0, 0);
     }
   }
-  printText("Fuel:", font_size.small, 10, 60);
-  line(barStart, 60 + barHeight, barStart + map(lander.fuel, 0, lander.maxFuel, 0, linesWidth), 60 + barHeight);  
-  line(barStart, 60, barStart, 60 + barHeight);
+  printText("Fuel:", font_size.small, 10, 85);
+  line(barStart, 70+ barHeight, barStart + map(lander.fuel, 0, lander.maxFuel, 0, linesWidth), 70 + barHeight);  
+  line(barStart, 70, barStart, 70 + barHeight);
   stroke(255, 255, 102);    
-  printText("PODS:", font_size.small, 10, 85);
+  fill(255, 255, 102);    
+  printText("PODS:", font_size.small, 10, 115);
   
-  line(barStart, 85 + barHeight, barStart + map(lander.kitties, totalKitties, 0, 0, linesWidth), 85 + barHeight);  
-  line(barStart, 85, 90, 85 + barHeight);  
+  line(barStart, 100 + barHeight, barStart + map(lander.kitties, totalKitties, 0, 0, linesWidth), 100 + barHeight);  
+  line(barStart, 100, barStart, 100 + barHeight);  
 }
 
 void addGameObject(GameObject o)
@@ -512,22 +587,7 @@ boolean checkKey(int k)
   }
   return false;
 }
-
-/*
-ControllDevice getController()
-{
-  // Add all the xbox controllers
-  for(int i = 0; i < controll.getNumberOfDevices(); i++){
-    ControllDevice device = controll.getDevice(i);
-    if (device.getName().toUpperCase().indexOf("XBOX 360") != -1)
-    {
-      return device;
-    }    
-  }
-  return null;
-}
-*/
-
+  
 void keyPressed()
 { 
   keys[keyCode] = true;

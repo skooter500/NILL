@@ -5,7 +5,6 @@ class Explosion extends GameObject
   color colour;
   float speed = 1.5f;
 
-  float timeDelta = 1.0 / 60.0f;
   float ellapsed = 0;
   float liveFor = 5.0f;
   

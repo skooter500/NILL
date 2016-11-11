@@ -6,7 +6,7 @@ class FuelPowerup extends GameObject implements Powerup
     h = 30;
     halfWidth = w / 2;
     halfHeight = h / 2;
-    position = randomOffscreenPoint(w);        
+      position = randomOffscreenPoint(w);        
     theta = 0.0f;
     colour = color(0, 255, 0);
     mass = 10.0f;
