@@ -132,24 +132,8 @@ class Ship extends GameObject
       
       float cx = width / 2;
       float cy = height / 2;
-                  
-      Hand hand = null;
-      if (leap != null)
-      {
-        hand = leap.getRightHand();
-        //println(hand.getPitch());
-      }
-      if (hand != null)
-      {
-        if (!lander.landed)
-        {
-          //lander.theta = radians(hand.getPitch());
-        }
-      } 
-      
-      
-          
-      if ((device != null && (device.getSlider(4).getValue() > 0.5f || device.getSlider(4).getValue() < -0.5f)) || (checkKey(forward)) || (hand != null && hand.getRawPosition().y < 200))      
+                                  
+      if ((device != null && (device.getSlider(4).getValue() > 0.5f || device.getSlider(4).getValue() < -0.5f)) || (checkKey(forward)))      
       {   
           if (fuel > 0 && position.y > height * .2)
           {  

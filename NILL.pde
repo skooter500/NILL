@@ -1,11 +1,6 @@
-import de.voidplus.leapmotion.*;
-
 import net.java.games.input.*;
 import org.gamecontrolplus.*;
 import org.gamecontrolplus.gui.*;
-
-// Uses the following Processing libraries:
-// https://github.com/voidplus/leap-motion-processing
 
 import ddf.minim.*;
 
@@ -21,7 +16,6 @@ boolean[] keys = new boolean[526];
 Landscape landscape;
 Explosion playerExplosion;
 Minim minim;//audio context
-LeapMotion leap;
 ControlDevice device;
 
 boolean overLandSite;
@@ -36,7 +30,6 @@ float safeSpeed = 30.0f;
 float timeDelta = 0;
 
 ControlIO control;
-
 
 AudioPlayer explosionSound;
 AudioPlayer pickupSound;
@@ -64,13 +57,12 @@ float spawnInterval = 5.0f;
 
 void setup()
 {
-  size(800, 800);
-  //fullScreen();
+  //size(800, 800);
+  fullScreen();
   smooth();
   noCursor();
   
   minim = new Minim(this);  
-  leap = new LeapMotion(this);
   
   explosionSound = minim.loadFile("explosion.wav");
   pickupSound = minim.loadFile("pickup.wav");
@@ -140,21 +132,24 @@ void splash()
   background(0);
   stroke(255);
   
-  printText("NILL - NILLs not Luner Lander", font_size.large, CENTRED, 100);  
+  printText("NILL - NILL is not Lunar Lander", font_size.large, CENTRED, 100);  
   printText("Programmed by Bryan Duggan, Music by Kevin Doyle", font_size.medium, CENTRED, 200);  
   printText("Land safely to retrieve all the pods", font_size.small, CENTRED, 300);  
   printText("Avoid the asteroids and don't crash", font_size.small, CENTRED, 350);
-  printText("Collect more fuel so you dont run out", font_size.small, CENTRED, 400);
-  printText("Keys: LEFT And RIGHT to steer, space to thrust", font_size.small, CENTRED, 450);
+  printText("Collect fuel so you dont run out", font_size.small, CENTRED, 400);
+  printText("Keys: LEFT And RIGHT to steer, UP to thrust, M to mute music", font_size.small, CENTRED, 450);
   printText("XBOX Controller: Left stick to steer, Trigger to thrust", font_size.small, CENTRED, 500);
-  printText("Leap motion: Rotate hand to steer, press down to thrust", font_size.small, CENTRED, 550);
   
   for(int i = 0 ; i < splashPowerups.length ; i ++)
-  {
+  {   
     int x = (width / 2) - 80;
-    int y = 650 + (i * 50);
+    int y = 600 + (i * 50);
     splashPowerups[i].position.x = x;
     splashPowerups[i].position.y = y; 
+    if (i == 1)
+    {
+      splashPowerups[i].position.y += 15; // Move the pod down
+    }
     splashPowerups[i].update();
     splashPowerups[i].display();
     stroke(255);  
@@ -342,7 +337,7 @@ void checkCollisions()
   if (landscape.isLandSite(l))
   {
     fill(255, 51, 255);
-    printText("Over land site", font_size.small, 10, 170);
+    printText("Over landing pad", font_size.small, 10, 148);
     overLandSite = true;
     float py = lander.position.y + lander.halfHeight;
     if (py  >= landscape.vertices.get(l).y && !lander.exploding)
@@ -361,8 +356,8 @@ void checkCollisions()
         lander.velocity.x = lander.velocity.y = 0;
         lander.position.y = landscape.vertices.get(l).y - lander.halfHeight;
         lander.landed = true;
-        stroke(51, 153, 255);
-        printText("Landed", font_size.small, 10, 135);
+        fill(51, 153, 255);
+        printText("Landed", font_size.small, 10, 178);
         KittyBox box = findKittyBox();
         if (box != null)
         {
